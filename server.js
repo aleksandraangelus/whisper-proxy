@@ -9,7 +9,7 @@ app.use(cors());
 const upload = multer({ dest: "uploads/" });
 
 const HUGGING_FACE_TOKEN = process.env.HF_TOKEN;
-const MODEL_URL = "https://api-inference.huggingface.co/models/openai/whisper-large-v3";
+const MODEL_URL = "https://api-inference.huggingface.co/models/openai/whisper-large-v3-turbo";
 
 app.post("/transcribe", upload.single("audio"), async (req, res) => {
   console.log("➡️  Otrzymano żądanie /transcribe");
@@ -56,3 +56,4 @@ app.post("/transcribe", upload.single("audio"), async (req, res) => {
 app.get("/", (_, res) => res.send("✅ Whisper proxy działa poprawnie"));
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => console.log(`🚀 Proxy działa na porcie ${PORT}`));
+
