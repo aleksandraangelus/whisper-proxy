@@ -1,6 +1,6 @@
 {
   "name": "whisper-proxy",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "main": "server.js",
   "type": "module",
   "scripts": {
@@ -10,7 +10,6 @@
     "express": "^4.19.2",
     "multer": "^1.4.5-lts.1",
     "cors": "^2.8.5",
-    "node-fetch": "^3.3.2",
-    "form-data": "^4.0.0"
+    "node-fetch": "^3.3.2"
   }
 }
