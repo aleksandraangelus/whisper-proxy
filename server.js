@@ -1,9 +1,8 @@
 import express from "express";
 import multer from "multer";
 import cors from "cors";
-import fetch from "node-fetch";
+import fetch, { FormData, fileFrom } from "node-fetch";
 import fs from "fs";
-import FormData from "form-data";
 
 const app = express();
 app.use(cors());
@@ -28,18 +27,15 @@ app.post("/transcribe", upload.single("audio"), async (req, res) => {
   try {
     console.log("📤 Wysyłanie pliku do Hugging Face (turbo)…");
 
-    // Utworzenie multipart/form-data
     const formData = new FormData();
-    formData.append("file", fs.createReadStream(req.file.path));
+    formData.append("file", await fileFrom(req.file.path, "audio/mpeg"));
 
-    // Wysłanie do Hugging Face
     const response = await fetch(MODEL_URL, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${HUGGING_FACE_TOKEN}`,
-        ...formData.getHeaders()
       },
-      body: formData
+      body: formData,
     });
 
     console.log("📥 Odpowiedź API:", response.status);
