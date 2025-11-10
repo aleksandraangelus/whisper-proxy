@@ -3,6 +3,7 @@ import multer from "multer";
 import cors from "cors";
 import fetch from "node-fetch";
 import fs from "fs";
+import FormData from "form-data";
 
 const app = express();
 app.use(cors());
@@ -25,28 +26,37 @@ app.post("/transcribe", upload.single("audio"), async (req, res) => {
   }
 
   try {
-    console.log("📤 Wysyłanie pliku do Hugging Face...");
-    const audio = fs.readFileSync(req.file.path);
+    console.log("📤 Wysyłanie pliku do Hugging Face (turbo)…");
 
+    // Utworzenie multipart/form-data
+    const formData = new FormData();
+    formData.append("file", fs.createReadStream(req.file.path));
+
+    // Wysłanie do Hugging Face
     const response = await fetch(MODEL_URL, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${HUGGING_FACE_TOKEN}`,
+        ...formData.getHeaders()
       },
-      body: audio,
+      body: formData
     });
 
     console.log("📥 Odpowiedź API:", response.status);
-    const data = await response.json();
-    fs.unlink(req.file.path, () => {});
 
-    if (!response.ok) {
-      console.error("❌ Błąd z Hugging Face:", data);
-      return res.status(500).json({ error: data });
+    const text = await response.text();
+    let data;
+
+    try {
+      data = JSON.parse(text);
+    } catch {
+      console.error("❌ Odpowiedź nie jest JSON:", text.slice(0, 200));
+      return res.status(response.status).send(text);
     }
 
-    console.log("✅ Udało się:", data);
-    res.json(data);
+    fs.unlink(req.file.path, () => {}); // usuń plik tymczasowy
+    res.status(response.status).json(data);
+
   } catch (err) {
     console.error("❌ Wyjątek:", err);
     res.status(500).json({ error: err.message });
@@ -56,4 +66,3 @@ app.post("/transcribe", upload.single("audio"), async (req, res) => {
 app.get("/", (_, res) => res.send("✅ Whisper proxy działa poprawnie"));
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => console.log(`🚀 Proxy działa na porcie ${PORT}`));
-
